@@ -188,4 +188,24 @@ concurrent mark sweep 并发标记清除，以获取最短回收停顿时间为�
 
 
 
+#### **三色标记算法**
+
+为什么CMS的GC线程可以和用户线程一起工作 ? 采用三色标记解决。
+
+缺点：
+
+
+
+
+
 #### **一张图让你看懂JVM之垃圾回收算法详解**
+
+![jvm_gc_all.jpeg](https://github.com/AndroidCrazyBoy/AndroidStudy/blob/main/resource/images/JVM/jvm_gc_all.jpeg?raw=true)
+
+
+
+
+
+##### 参考文章
+
+[GC过程中需要stop the world的原因是什么](https://www.yisu.com/zixun/541057.html)
