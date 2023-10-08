@@ -52,3 +52,78 @@ GC 的存活标准知道哪些区域的内存需要被回收之后，我们自�
 
 
 #### **分代回收**
+
+![jvm_gc_heap_structure.jpeg](https://github.com/AndroidCrazyBoy/AndroidStudy/blob/main/resource/images/JVM/jvm_gc_heap_structure.jpeg?raw=true)
+
+- 新生代
+
+  ```
+  所有新 new 出来的对象都会最先出现在新生代中，当新生代这部分内存满了之后，就会发起一次垃圾收集事件，这种发生在新生代的垃圾收集称为 Minor collections。 这种收集通常比较快，因为新生代的大部分对象都是需要回收的，那些暂时无法回收的就会被移动到老年代。
+  
+  全局暂停事件（Stop the World）：所有小收集（minor garbage collections）都是全局暂停事件，也就是意味着所有的应用线程都需要停止，直到垃圾回收的操作全部完成。类似于“你妈妈在给你打扫房间的时候，肯定也会让你老老实实地在椅子上或者房间外待着，如果她一边打扫，你一边乱扔纸屑，这房间还能打扫完？”
+  ```
+
+  - 新生代（Young Generation）的回收算法
+
+    - 所有新生成的对象首先都是放在新生代的。新生代的目标就是尽可能快速的收集掉那些生命周期短的对象。
+    - 新生代内存按照`8:1:1`的比例分为一个 **eden区和两个survivor(survivor0,survivor1)** 区。大部分对象在Eden区中生成，回收时先将eden区存活对象复制到一个`survivor0`区，然后清空eden区。当这个survivor0区也存放满了时，则**将eden区和survivor0区存活对象复制到另一个survivor1区**，然后清空eden和这个survivor0区，此时survivor0区是空的然后**将survivor0区和survivor1区交换**，即保持survivor1区为空，如此往复。
+    - 当survivor1区不足以存放 eden和survivor0的存活对象时，就将存活对象直接存放到老年代。若是老年代也满了就会触发一次`Full GC`，也就是新生代、老年代都进行回收。
+    - 新生代发生的GC也叫做`Minor GC`，MinorGC发生频率比较高(不一定等Eden区满了才触发)。
+
+    
+
+- 老年代
+
+  ```
+  老年代用来存储那些存活时间较长的对象。 一般来说，我们会给新生代的对象限定一个存活的时间，当达到这个时间还没有被收集的时候就会被移动到老年代中。随着时间的推移，老年代也会被填满，最终导致老年代也要进行垃圾回收。这个事件叫做大收集(major garbage collection)。
+  
+  大收集也是全局暂停事件。通常大收集比较慢，因为它涉及到所有的存活对象。所以，对于对相应时间要求高的应用，应该将大收集最小化。此外，对于大收集，全局暂停事件的暂停时长会受到用于老年代的垃圾回收器的影响。
+  ```
+
+  - 老年代（Old Generation）的回收算法
+    - 在新生代中经历了N次垃圾回收后仍然存活的对象，就会被放到老年代中。因此，可以认为**老年代中存放的都是一些生命周期较长的对象**。
+    - 内存比新生代也大很多(大概比例是1:2)，当老年代内存满时触发`Major GC`即`Full GC`，`Full GC`发生频率比较低，老年代对象存活时间比较长，存活率标记高。
+
+
+
+![jvm_gc.png](https://github.com/AndroidCrazyBoy/AndroidStudy/blob/main/resource/images/JVM/jvm_gc.png?raw=true)
+
+
+
+#### **垃圾搜集器**
+
+**Serial**
+
+```
+单线程串行  复制算法
+```
+
+**Serial Old**
+
+```
+老年代的收集器，与Serial一样是单线程，不同的是算法用的是标记-整理（Mark-Compact）
+```
+
+**Parallel Scavenge**
+
+```
+Serial 收集器的多线程版本，并行收集器。 复制算法
+```
+
+**Parallel Old**
+
+```
+老年代的收集器，是Parallel Scavenge老年代的版本。其中的算法替换成 Mark-Compact。
+```
+
+**ParNew**
+
+```
+跟Parallel类似，专门为了配合cms使用。 复制算法。 新生代并行收集器。
+```
+
+**CMS**
+
+```
+concurrent mark sweep 并发标记清除，以获取最短回收停顿时间为目标。 老年代并发回收器。
+```
